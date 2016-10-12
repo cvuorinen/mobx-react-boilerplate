@@ -1,58 +1,59 @@
-import React, { Component } from 'react';
-import { observer } from 'mobx-react';
+import angular from 'angular';
+import ObservableTodoStore from './ObservableTodoStore';
 
-@observer
-class TodoList extends React.Component {
-  render() {
-    const store = this.props.store;
-    return (
+
+
+const module = angular.module('app.TodoList', [])
+  .component('todoList', {
+    template: `
       <div>
-        { store.report }
+        {{ $ctrl.report }}
         <ul>
-        { store.todos.map(
-          (todo, idx) => <TodoView todo={ todo } key={ idx } />
-        ) }
+        <li ng-repeat="todo in $ctrl.todos">
+          <todo-view todo="todo" />
+        </li>
         </ul>
-        <button onClick={ this.onNewTodo }>New Todo</button>
+        <button ng-click="$ctrl.addTodo()">New Todo</button>
         <small> (double-click a todo to edit)</small>
       </div>
-    );
-  }
+    `,
 
-  onNewTodo = () => {
-    this.props.store.addTodo(prompt('Enter a new todo:','coffee plz'));
-  }
-}
 
-@observer
-class TodoView extends React.Component {
-  render() {
-    const todo = this.props.todo;
-    return (
-      <li onDoubleClick={ this.onRename }>
+    controller: ObservableTodoStore
+
+  })
+
+
+  .component('todoView', {
+    bindings: {
+      todo: '<'
+    },
+    template: `
+      <div ng-dblclick="$ctrl.onRename()">
         <input
           type='checkbox'
-          checked={ todo.completed }
-          onChange={ this.onToggleCompleted }
+          ng-checked="$ctrl.todo.completed"
+          ng-click="$ctrl.onToggleCompleted()"
         />
-        { todo.task }
-        { todo.assignee
-          ? <small>{ todo.assignee.name }</small>
-          : null
-        }
-      </li>
-    );
-  }
+        {{ $ctrl.todo.task }}
+        <small
+          ng-if="$ctrl.todo.assignee">
+          {{ $ctrl.todo.assignee.name }}
+        </small>
+      </div>
+    `,
 
-  onToggleCompleted = () => {
-    const todo = this.props.todo;
-    todo.completed = !todo.completed;
-  }
+    controller: class TodoView {
+      onToggleCompleted = () => {
+        const todo = this.todo;
+        todo.completed = !todo.completed;
+      }
 
-  onRename = () => {
-    const todo = this.props.todo;
-    todo.task = prompt('Task name', todo.task) || todo.task;
-  }
-}
+      onRename = () => {
+        const todo = this.todo;
+        todo.task = prompt('Task name', todo.task) || todo.task;
+      }
+    }
+  });
 
-export default TodoList;
+export default module.name;
