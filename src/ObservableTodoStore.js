@@ -1,19 +1,19 @@
-import { observable, computed, autorun } from 'mobx';
+
 
 class ObservableTodoStore {
-  @observable todos = [];
+  todos = [];
 
-  constructor() {
-    autorun(() => console.log(this.report));
+  constructor($scope) {
+    $scope.$watch('$ctrl.report', () => console.log(this.report));
   }
 
-  @computed get completedTodosCount() {
+  get completedTodosCount() {
     return this.todos.filter(
       todo => todo.completed === true
     ).length;
   }
 
-  @computed get report() {
+  get report() {
     if (this.todos.length === 0)
       return "<none>";
     return `Next todo: "${this.todos[0].task}". ` +
@@ -22,7 +22,7 @@ class ObservableTodoStore {
 
   addTodo(task) {
     this.todos.push({
-      task: task,
+      task: task || prompt('Enter a new todo:','coffee plz'),
       completed: false,
       assignee: null
     });
